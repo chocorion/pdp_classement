@@ -8,12 +8,14 @@ def read_data(filename="data.txt"):
 
     for line in lines:
         (name, permutation) = line.split('|')
-
         extracted_data[name] = list()
 
         for number in permutation.split(','):
             extracted_data[name].append(int(number))
 
+    file.close()
+
+    return extracted_data
 
 project_permutation = read_data()
 
