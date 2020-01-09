@@ -10,6 +10,7 @@ GROUP_SIZE      = 5
 
 
 def read_student_permutation_data(filename="data.txt"):
+    ''' Read the permutation for each student, and return the dict '''
     file = open(filename, "r")
     lines = file.readlines()
 
@@ -29,6 +30,7 @@ def read_student_permutation_data(filename="data.txt"):
 
 
 def make_project_popularity(student_permutation, display=False):
+    ''' For each project, compute how many student want it on which position '''
     result = dict()
     number_project_list = range(1, NUMBER_PROJECTS + 1)
 
@@ -42,14 +44,17 @@ def make_project_popularity(student_permutation, display=False):
 
 
     if (display):
+        print("\tProject popularity :\n\n")
         for project_num in number_project_list:
             print("{}.{:65s}\t{}".format(project_num, projects[project_num], result[project_num]))
+        print('\n\n')
 
     return result
 
 
 
 def generate_random_distribution(student_list, student_project_permutation, display=False):
+    ''' Generate one distribution, based on a random permutation of students '''
     random_permutation = [i for i in range(len(student_list))]
     shuffle(random_permutation)
 
@@ -71,6 +76,7 @@ def generate_random_distribution(student_list, student_project_permutation, disp
             sys.exit(0)
 
     if (display):
+        print('\tOne distribution :\n\n')
         for project_num in projects.keys():
             project_student_list = list()
 
@@ -79,6 +85,7 @@ def generate_random_distribution(student_list, student_project_permutation, disp
                     project_student_list.append(student)
 
             print("{}.{:65s}\t -> {}".format(project_num, projects[project_num], project_student_list))
+        print('\n')
 
     return student_assigned_project
 
@@ -97,7 +104,7 @@ def find_best_distribution():
 student_project_permutation = read_student_permutation_data()
 student_list = [student for student in student_project_permutation.keys()]
 
-popularity = make_project_popularity(student_project_permutation, display=False)
+popularity = make_project_popularity(student_project_permutation, display=True)
 
 
 generate_random_distribution(student_list, student_project_permutation, True)
