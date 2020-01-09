@@ -2,9 +2,12 @@
 
 from projects import projects
 
-NUMBER_PROJECTS = 25
 
-def read_data(filename="data.txt"):
+NUMBER_PROJECTS = 25
+GROUP_SIZE      = 5
+
+
+def read_student_permutation_data(filename="data.txt"):
     file = open(filename, "r")
     lines = file.readlines()
 
@@ -22,6 +25,7 @@ def read_data(filename="data.txt"):
     return extracted_data
 
 
+
 def make_project_popularity(student_permutation, display=False):
     result = dict()
     number_project_list = range(1, NUMBER_PROJECTS + 1)
@@ -29,11 +33,9 @@ def make_project_popularity(student_permutation, display=False):
     for i in number_project_list:
         result[i] = [0 for i in number_project_list]
 
-    #print(result)
 
     for student in student_permutation.keys():
         for permutation_index in range(len(number_project_list)):
-            #print(student_permutation[student], permutation_index, student_permutation[student][permutation_index])
             result[student_permutation[student][permutation_index]][permutation_index] += 1
 
 
@@ -43,6 +45,20 @@ def make_project_popularity(student_permutation, display=False):
 
     return result
 
-project_permutation = read_data()
 
+
+def generate_random_distribution():
+    # TODO
+    pass
+
+def distribution_lost():
+    # TODO
+    pass
+
+def find_best_distribution():
+    # TODO
+    pass
+
+
+project_permutation = read_student_permutation_data()
 popularity = make_project_popularity(project_permutation, display=True)
