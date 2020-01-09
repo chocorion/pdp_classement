@@ -52,6 +52,17 @@ def make_project_popularity(student_permutation, display=False):
     return result
 
 
+def display_distribution(distribution, student_list):
+    for project_num in projects.keys():
+        project_student_list = list()
+
+        for student in student_list:
+            if distribution[student] == project_num:
+                project_student_list.append(student)
+
+        print("{}.{:65s}\t -> {}".format(project_num, projects[project_num], project_student_list))
+    print('\n')
+
 
 def generate_random_distribution(student_list, student_project_permutation, display=False):
     ''' Generate one distribution, based on a random permutation of students '''
@@ -77,17 +88,10 @@ def generate_random_distribution(student_list, student_project_permutation, disp
 
     if (display):
         print('\tOne distribution :\n\n')
-        for project_num in projects.keys():
-            project_student_list = list()
-
-            for student in student_list:
-                if student_assigned_project[student] == project_num:
-                    project_student_list.append(student)
-
-            print("{}.{:65s}\t -> {}".format(project_num, projects[project_num], project_student_list))
-        print('\n')
+        display_distribution(student_assigned_project, student_list)
 
     return student_assigned_project
+
 
     
 
@@ -96,26 +100,34 @@ def distribution_loss(student_assigned_project, student_project_permutation):
 
     for student in student_assigned_project.keys():
         choice = student_project_permutation[student].index(student_assigned_project[student])
-
-        print(student, choice)
         loss += 2**choice
 
     return loss
 
 
 
-def find_best_distribution():
-    # TODO
-    pass
+def find_best_distribution(student_project_permutation, number_of_try):
+    student_list = [student for student in student_project_permutation.keys()]
+    
+    best_assignement = generate_random_distribution(student_list, student_project_permutation)
+    min_loss = distribution_loss(best_assignement, student_project_permutation)
+
+    for i in range(number_of_try):
+        current_assignement = generate_random_distribution(student_list, student_project_permutation)
+        current_loss = distribution_loss(best_assignement, student_project_permutation)
+
+        if current_loss < min_loss:
+            min_loss = current_loss
+            best_assignement = current_assignement
+
+    return best_assignement
 
 
 
 student_project_permutation = read_student_permutation_data()
-student_list = [student for student in student_project_permutation.keys()]
 
 popularity = make_project_popularity(student_project_permutation, display=True)
 
+best_assignement = find_best_distribution(student_project_permutation, 100)
 
-student_assigned_example = generate_random_distribution(student_list, student_project_permutation, True)
-
-print("Loss for this example -> ", distribution_loss(student_assigned_example, student_project_permutation))
+display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
