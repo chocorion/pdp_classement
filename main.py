@@ -91,9 +91,18 @@ def generate_random_distribution(student_list, student_project_permutation, disp
 
     
 
-def distribution_lost():
-    # TODO
-    pass
+def distribution_loss(student_assigned_project, student_project_permutation):
+    loss = 0
+
+    for student in student_assigned_project.keys():
+        choice = student_project_permutation[student].index(student_assigned_project[student])
+
+        print(student, choice)
+        loss += 2**choice
+
+    return loss
+
+
 
 def find_best_distribution():
     # TODO
@@ -107,4 +116,6 @@ student_list = [student for student in student_project_permutation.keys()]
 popularity = make_project_popularity(student_project_permutation, display=True)
 
 
-generate_random_distribution(student_list, student_project_permutation, True)
+student_assigned_example = generate_random_distribution(student_list, student_project_permutation, True)
+
+print("Loss for this example -> ", distribution_loss(student_assigned_example, student_project_permutation))
