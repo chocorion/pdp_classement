@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from random import shuffle
 from projects import projects
 
 
@@ -47,9 +48,39 @@ def make_project_popularity(student_permutation, display=False):
 
 
 
-def generate_random_distribution():
-    # TODO
-    pass
+def generate_random_distribution(student_list, student_project_permutation, display=False):
+    random_permutation = [i for i in range(len(student_list))]
+    shuffle(random_permutation)
+
+    student_per_project = dict()
+
+    student_assigned_project = dict()
+
+    for project_num in projects.keys():
+        student_per_project[project_num] = 0
+
+    for student_index in random_permutation:
+
+        for choice in student_project_permutation[student_list[student_index]]:
+
+            if student_per_project[choice] < GROUP_SIZE:
+                student_per_project[choice] += 1
+                student_assigned_project[student_list[student_index]] = choice
+                break
+
+    if (display):
+        for project_num in projects.keys():
+            project_student_list = list()
+
+            for student in student_list:
+                if student_assigned_project[student] == project_num:
+                    project_student_list.append(student)
+
+            print("{}.{:65s}\t -> {}".format(project_num, projects[project_num], project_student_list))
+
+    return student_assigned_project
+
+    
 
 def distribution_lost():
     # TODO
@@ -60,5 +91,11 @@ def find_best_distribution():
     pass
 
 
-project_permutation = read_student_permutation_data()
-popularity = make_project_popularity(project_permutation, display=True)
+
+student_project_permutation = read_student_permutation_data()
+student_list = [student for student in student_project_permutation.keys()]
+
+popularity = make_project_popularity(student_project_permutation, display=False)
+
+
+generate_random_distribution(student_list, student_project_permutation, True)
