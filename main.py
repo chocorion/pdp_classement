@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 from random import shuffle
 from projects import projects
 
@@ -53,20 +54,21 @@ def generate_random_distribution(student_list, student_project_permutation, disp
     shuffle(random_permutation)
 
     student_per_project = dict()
-
     student_assigned_project = dict()
 
     for project_num in projects.keys():
         student_per_project[project_num] = 0
 
     for student_index in random_permutation:
-
         for choice in student_project_permutation[student_list[student_index]]:
 
             if student_per_project[choice] < GROUP_SIZE:
                 student_per_project[choice] += 1
                 student_assigned_project[student_list[student_index]] = choice
                 break
+        else: # Oui j'ai le droit de faire ça :)
+            print("Error -> student without project !")
+            sys.exit(0)
 
     if (display):
         for project_num in projects.keys():
