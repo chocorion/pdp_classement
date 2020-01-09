@@ -5,9 +5,9 @@ from random import shuffle
 from projects import projects
 
 
-NUMBER_PROJECTS = 25
-GROUP_SIZE      = 5
-
+NUMBER_PROJECTS     = 25
+GROUP_SIZE          = 5
+DEFAULT_NUMBER_TRY  = 100
 
 def read_student_permutation_data(filename="data.txt"):
     ''' Read the permutation for each student, and return the dict '''
@@ -106,15 +106,20 @@ def distribution_loss(student_assigned_project, student_project_permutation):
 
 
 
-def find_best_distribution(student_project_permutation, number_of_try):
+def find_best_distribution(student_project_permutation, number_of_try, verbose=False):
     student_list = [student for student in student_project_permutation.keys()]
     
     best_assignement = generate_random_distribution(student_list, student_project_permutation)
     min_loss = distribution_loss(best_assignement, student_project_permutation)
 
+    if verbose:
+        print("Initial assignement loss -> {}".format(min_loss))
+
     for i in range(number_of_try):
         current_assignement = generate_random_distribution(student_list, student_project_permutation)
         current_loss = distribution_loss(best_assignement, student_project_permutation)
+
+        print("\tTry number {} loss -> {}".format(i, min_loss))
 
         if current_loss < min_loss:
             min_loss = current_loss
@@ -123,11 +128,15 @@ def find_best_distribution(student_project_permutation, number_of_try):
     return best_assignement
 
 
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        number_try = int(sys.argv[1])
+    else:
+        number_try = DEFAULT_NUMBER_TRY
 
-student_project_permutation = read_student_permutation_data()
 
-popularity = make_project_popularity(student_project_permutation, display=True)
+    student_project_permutation = read_student_permutation_data()
+    popularity = make_project_popularity(student_project_permutation, display=True)
+    best_assignement = find_best_distribution(student_project_permutation, number_try, verbose=False)
 
-best_assignement = find_best_distribution(student_project_permutation, 100)
-
-display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
+    display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
