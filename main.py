@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+############################################################
+#
+#   Ce code repose sur le fait que peux de monde l'utilise.
+#   Si je vous ai donné accés, merci de garder ça pour vous :)
+#
+
+
 import sys
 from random import shuffle
 from projects import projects
