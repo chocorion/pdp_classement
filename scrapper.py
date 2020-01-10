@@ -2,6 +2,13 @@
 
 import requests, json
 
+# Il faut créer un fichier cookies.py, contenant les cookies dans un dico
+# cookies = {
+#   'name': 'value',
+#   ...
+# }
+# Utilise editThisCookie, extention pour charger les cookies
+
 from cookies import cookies
 
 url = "https://evento.renater.fr/rest.php/question/219442/answer?format=json"
