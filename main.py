@@ -11,12 +11,18 @@ DEFAULT_NUMBER_TRY  = 50000
 
 def read_student_permutation_data(filename="data.txt"):
     ''' Read the permutation for each student, and return the dict '''
+
     file = open(filename, "r")
     lines = file.readlines()
 
     extracted_data = dict()
 
     for line in lines:
+        if (line[0] == '#'):
+            continue
+        if ('|' not in line):
+            continue
+        
         (name, permutation) = line.split('|')
         extracted_data[name] = list()   
 
@@ -31,6 +37,7 @@ def read_student_permutation_data(filename="data.txt"):
 
 def make_project_popularity(student_permutation, display=False):
     ''' For each project, compute how many student want it on which position '''
+
     result = dict()
     number_project_list = range(1, NUMBER_PROJECTS + 1)
 
@@ -53,6 +60,8 @@ def make_project_popularity(student_permutation, display=False):
 
 
 def display_distribution(distribution, student_list):
+    ''' Display the distribution of student by project '''
+
     for project_num in projects.keys():
         project_student_list = list()
 
@@ -66,6 +75,7 @@ def display_distribution(distribution, student_list):
 
 def generate_random_distribution(student_list, student_project_permutation, display=False):
     ''' Generate one distribution, based on a random permutation of students '''
+
     random_permutation = [i for i in range(len(student_list))]
     shuffle(random_permutation)
 
@@ -96,6 +106,7 @@ def generate_random_distribution(student_list, student_project_permutation, disp
     
 
 def distribution_loss(student_assigned_project, student_project_permutation):
+    ''' Compute distribution loss, based on what the prof say '''
     loss = 0
 
     for student in student_assigned_project.keys():
@@ -107,6 +118,8 @@ def distribution_loss(student_assigned_project, student_project_permutation):
 
 
 def print_progression_bar(max_number, current_number, current_loss, min_loss):
+    ''' Display a beautiful progression bar for find_best_distribution '''
+
     progression = round((current_number/max_number) * 100, 2)
 
     print("Progression: {:4d}/{:4d} -> {:4f}% | Current loss -> {:6d} : Minimal loss -> {:6d}".format(current_number, max_number, progression, current_loss, min_loss), end='\n' if current_number == max_number else '\r')
@@ -116,7 +129,9 @@ def print_progression_bar(max_number, current_number, current_loss, min_loss):
         print('\n')
 
 
-def find_best_distribution(student_project_permutation, number_of_try, verbose=False):
+def find_best_distribution(student_project_permutation, number_of_try, username, verbose=False):
+    ''' The core algorithme, find best solution and make stats '''
+
     student_list = [student for student in student_project_permutation.keys()]
     stats = dict()
     
@@ -160,6 +175,9 @@ def usage():
     print("\nUsage :")
     print("\t./main.py <number_of_try (opt)> <\"your_name\" (opt)>")
 
+
+
+
 if __name__ == "__main__":
     username = ""
     if len(sys.argv) == 2:
@@ -188,15 +206,16 @@ if __name__ == "__main__":
     student_project_permutation = read_student_permutation_data()
     student_list = [student for student in student_project_permutation.keys()]
 
-    print("Username -> ", username, username in student_list)
-
     if username != "" and username not in student_list:
         print("Error, {} not in student list...".format(username))
         print("Student list -> ")
         for student in student_list:
             print("\t", student)
 
+        print("Please, use juste the name displayed without any extra space, i don't like string manipulation...")
+
         sys.exit(0)
+
     elif username == "":
         unsername_find = False
         print ("What is your name ?")
@@ -217,9 +236,13 @@ if __name__ == "__main__":
                 unsername_find = True
 
 
-    print("\n\nHello {} !\n".format(username))
+
+
+
+    print("\n\nHello {} !".format(username))
+    print("Current number of students in database -> {}\n\n".format(len(student_list)))
 
     popularity = make_project_popularity(student_project_permutation, display=True)
-    best_assignement = find_best_distribution(student_project_permutation, number_try, verbose=True)
+    best_assignement = find_best_distribution(student_project_permutation, number_try, username, verbose=True)
 
     display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
