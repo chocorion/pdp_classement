@@ -122,9 +122,9 @@ def distribution_loss(student_assigned_project, student_project_permutation):
 def print_progression_bar(max_number, current_number, current_loss, min_loss):
     ''' Display a beautiful progression bar for find_best_distribution '''
 
-    progression = round((current_number/max_number) * 100, 2)
+    progression = str(round((current_number/max_number) * 100, 2))
 
-    print("Progression: {:4d}/{:4d} -> {:4f}% | Current loss -> {:6d} : Minimal loss -> {:6d}".format(current_number, max_number, progression, current_loss, min_loss), end='\n' if current_number == max_number else '\r')
+    print("Progression: {:4d}/{:4d} -> {:5s}% | Current loss -> {:6d} : Minimal loss -> {:6d}".format(current_number, max_number, progression, current_loss, min_loss), end='\n' if current_number == max_number else '\r')
 
     # \n at the end
     if current_number == max_number:
@@ -250,5 +250,5 @@ if __name__ == "__main__":
     popularity = make_project_popularity(student_project_permutation, display=True)
     best_assignement = find_best_distribution(student_project_permutation, number_try, username, verbose=True)
 
-    print("\nExemple de distribution :")
+    print("\n\nExemple de distribution :")
     display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
