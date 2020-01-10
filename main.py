@@ -177,7 +177,13 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
         loss_list = [i for i in stats.keys()]
         loss_list.sort()
 
-        print("Loss frequency : Chance to have project")
+        print("Your firsts projects : ")
+
+        
+        for i in range(4):
+            print("\t{}. {}".format(i + 1, projects[student_project_permutation[username][i]]))
+
+        print("\n\nLoss frequency : Chance to have project")
         
         for i in loss_list:
             print("{:10d} -> {:10d} ({:6s}%) {}".format(i,stats[i][0],str(round((stats[i][0]/number_of_try)*100, 2)), [round((j/stats[i][0]) * 100, 2) for j in stats[i][1]]))
