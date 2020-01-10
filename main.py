@@ -63,6 +63,7 @@ def make_project_popularity(student_permutation, display=False):
 def display_distribution(distribution, student_list):
     ''' Display the distribution of student by project '''
 
+    print('\n')
     for project_num in projects.keys():
         project_student_list = list()
 
@@ -172,7 +173,7 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
         print("Loss frequency : Chance to have project")
         
         for i in loss_list:
-            print("{:10d} -> {:10d} {}".format(i, stats[i][0], [round((j/stats[i][0]) * 100, 2) for j in stats[i][1]]))
+            print("{:10d} -> {:10d} ({:6s}%) {}".format(i,stats[i][0],str(round((stats[i][0]/number_of_try)*100, 2)), [round((j/stats[i][0]) * 100, 2) for j in stats[i][1]]))
 
     return best_assignement
 
@@ -249,4 +250,5 @@ if __name__ == "__main__":
     popularity = make_project_popularity(student_project_permutation, display=True)
     best_assignement = find_best_distribution(student_project_permutation, number_try, username, verbose=True)
 
+    print("\nExemple de distribution :")
     display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
