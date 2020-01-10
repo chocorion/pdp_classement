@@ -123,7 +123,10 @@ def find_best_distribution(student_project_permutation, number_of_try, verbose=F
     best_assignement = generate_random_distribution(student_list, student_project_permutation)
     min_loss = distribution_loss(best_assignement, student_project_permutation)
 
-    for i in range(number_of_try):
+    stats[min_loss] = 1
+
+
+    for i in range(1, number_of_try):
         current_assignement = generate_random_distribution(student_list, student_project_permutation)
         current_loss = distribution_loss(current_assignement, student_project_permutation)
 
@@ -133,7 +136,8 @@ def find_best_distribution(student_project_permutation, number_of_try, verbose=F
             stats[current_loss] = 1
 
         if verbose:
-            print_progression_bar(number_of_try - 1, i, current_loss, min_loss)
+            # +1 because 1 already used for initialisation, 
+            print_progression_bar(number_of_try, i + 1, current_loss, min_loss)
 
         if current_loss < min_loss:
             min_loss = current_loss
@@ -153,20 +157,68 @@ def find_best_distribution(student_project_permutation, number_of_try, verbose=F
 
 
 def usage():
-    print("./main.py <number_of_try (opt)> <your_name (opt)>")
+    print("\nUsage :")
+    print("\t./main.py <number_of_try (opt)> <\"your_name\" (opt)>")
 
 if __name__ == "__main__":
+    username = ""
     if len(sys.argv) == 2:
         try:
             number_try = int(sys.argv[1])
         except:
             usage()
-            sys.exit()
+            sys.exit(0)
+
+    elif len(sys.argv) == 3:
+        try:
+            number_try = int(sys.argv[1])
+            username = sys.argv[2]
+        except:
+            usage()
+            sys.exit(0)
+    elif len(sys.argv) == 4:
+        print("Put your name between \"\" please, i'm lazy...")
+        usage()
+
+        sys.exit(0)
     else:
         number_try = DEFAULT_NUMBER_TRY
 
 
     student_project_permutation = read_student_permutation_data()
+    student_list = [student for student in student_project_permutation.keys()]
+
+    print("Username -> ", username, username in student_list)
+
+    if username != "" and username not in student_list:
+        print("Error, {} not in student list...".format(username))
+        print("Student list -> ")
+        for student in student_list:
+            print("\t", student)
+
+        sys.exit(0)
+    elif username == "":
+        unsername_find = False
+        print ("What is your name ?")
+        for i in range(len(student_list)):
+            print("\t{} -> {}".format(i, student_list[i]))
+
+        while not unsername_find:
+            try:
+                num = int(input("Enter student num : "))
+            except:
+                print("You must enter a number !")
+            
+            if num >= len(student_list) or num < 0:
+                print("Number not in range, are you idiot ?")
+            
+            if input("Are you {} (y/n) ? ".format(student_list[num])) == 'y':
+                username = student_list[num]
+                unsername_find = True
+
+
+    print("\n\nHello {} !\n".format(username))
+
     popularity = make_project_popularity(student_project_permutation, display=True)
     best_assignement = find_best_distribution(student_project_permutation, number_try, verbose=True)
 
