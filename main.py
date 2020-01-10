@@ -115,8 +115,10 @@ def print_progression_bar(max_number, current_number, current_loss, min_loss):
     if current_number == max_number:
         print('\n')
 
+
 def find_best_distribution(student_project_permutation, number_of_try, verbose=False):
     student_list = [student for student in student_project_permutation.keys()]
+    stats = dict()
     
     best_assignement = generate_random_distribution(student_list, student_project_permutation)
     min_loss = distribution_loss(best_assignement, student_project_permutation)
@@ -125,6 +127,11 @@ def find_best_distribution(student_project_permutation, number_of_try, verbose=F
         current_assignement = generate_random_distribution(student_list, student_project_permutation)
         current_loss = distribution_loss(current_assignement, student_project_permutation)
 
+        if current_loss in stats.keys():
+            stats[current_loss] += 1
+        else:
+            stats[current_loss] = 1
+
         if verbose:
             print_progression_bar(number_of_try - 1, i, current_loss, min_loss)
 
@@ -132,12 +139,29 @@ def find_best_distribution(student_project_permutation, number_of_try, verbose=F
             min_loss = current_loss
             best_assignement = current_assignement
 
+
+    if (verbose):
+        loss_list = [i for i in stats.keys()]
+        loss_list.sort()
+
+        print("Loss frequency :")
+
+        for i in loss_list:
+            print("{:20d} -> {}".format(i, stats[i]))
+
     return best_assignement
 
 
+def usage():
+    print("./main.py <number_of_try (opt)> <your_name (opt)>")
+
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        number_try = int(sys.argv[1])
+        try:
+            number_try = int(sys.argv[1])
+        except:
+            usage()
+            sys.exit()
     else:
         number_try = DEFAULT_NUMBER_TRY
 
