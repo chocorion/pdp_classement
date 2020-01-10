@@ -20,9 +20,10 @@ def read_student_permutation_data(filename="data.txt"):
     for line in lines:
         if (line[0] == '#'):
             continue
+
         if ('|' not in line):
             continue
-        
+
         (name, permutation) = line.split('|')
         extracted_data[name] = list()   
 
@@ -138,7 +139,8 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
     best_assignement = generate_random_distribution(student_list, student_project_permutation)
     min_loss = distribution_loss(best_assignement, student_project_permutation)
 
-    stats[min_loss] = 1
+    # for each loss, number of accurence and number of choice occurence
+    stats[min_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
 
 
     for i in range(1, number_of_try):
@@ -146,9 +148,9 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
         current_loss = distribution_loss(current_assignement, student_project_permutation)
 
         if current_loss in stats.keys():
-            stats[current_loss] += 1
+            stats[current_loss][0] += 1
         else:
-            stats[current_loss] = 1
+            stats[current_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
 
         if verbose:
             # +1 because 1 already used for initialisation, 
@@ -159,14 +161,18 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
             best_assignement = current_assignement
 
 
+        choice_position = student_project_permutation[username].index(current_assignement[username])
+        stats[current_loss][1][choice_position] += 1
+
+
     if (verbose):
         loss_list = [i for i in stats.keys()]
         loss_list.sort()
 
-        print("Loss frequency :")
-
+        print("Loss frequency : Chance to have project")
+        
         for i in loss_list:
-            print("{:20d} -> {}".format(i, stats[i]))
+            print("{:10d} -> {:10d} {}".format(i, stats[i][0], [round((j/stats[i][0]) * 100, 2) for j in stats[i][1]]))
 
     return best_assignement
 
@@ -234,8 +240,6 @@ if __name__ == "__main__":
             if input("Are you {} (y/n) ? ".format(student_list[num])) == 'y':
                 username = student_list[num]
                 unsername_find = True
-
-
 
 
 
