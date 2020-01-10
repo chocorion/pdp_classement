@@ -7,7 +7,7 @@ from projects import projects
 
 NUMBER_PROJECTS     = 25
 GROUP_SIZE          = 5
-DEFAULT_NUMBER_TRY  = 100
+DEFAULT_NUMBER_TRY  = 50000
 
 def read_student_permutation_data(filename="data.txt"):
     ''' Read the permutation for each student, and return the dict '''
@@ -106,20 +106,27 @@ def distribution_loss(student_assigned_project, student_project_permutation):
 
 
 
+def print_progression_bar(max_number, current_number, current_loss, min_loss):
+    progression = round((current_number/max_number) * 100, 2)
+
+    print("Progression: {:4d}/{:4d} -> {:4f}% | Current loss -> {:6d} : Minimal loss -> {:6d}".format(current_number, max_number, progression, current_loss, min_loss), end='\n' if current_number == max_number else '\r')
+
+    # \n at the end
+    if current_number == max_number:
+        print('\n')
+
 def find_best_distribution(student_project_permutation, number_of_try, verbose=False):
     student_list = [student for student in student_project_permutation.keys()]
     
     best_assignement = generate_random_distribution(student_list, student_project_permutation)
     min_loss = distribution_loss(best_assignement, student_project_permutation)
 
-    if verbose:
-        print("Initial assignement loss -> {}".format(min_loss))
-
     for i in range(number_of_try):
         current_assignement = generate_random_distribution(student_list, student_project_permutation)
         current_loss = distribution_loss(current_assignement, student_project_permutation)
 
-        print("\tTry number {} loss -> {}".format(i, min_loss))
+        if verbose:
+            print_progression_bar(number_of_try - 1, i, current_loss, min_loss)
 
         if current_loss < min_loss:
             min_loss = current_loss
@@ -137,6 +144,6 @@ if __name__ == "__main__":
 
     student_project_permutation = read_student_permutation_data()
     popularity = make_project_popularity(student_project_permutation, display=True)
-    best_assignement = find_best_distribution(student_project_permutation, number_try, verbose=False)
+    best_assignement = find_best_distribution(student_project_permutation, number_try, verbose=True)
 
     display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
