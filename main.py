@@ -32,13 +32,13 @@ def read_student_permutation_data(filename="data.txt"):
             continue
 
         (name, permutation) = line.split('|')
-        extracted_data[name] = list()   
+        permutation = permutation[1:(len(permutation) - 2)]
+        extracted_data[name] = list()
 
         for number in permutation.split(','):
             extracted_data[name].append(int(number))
 
     file.close()
-
     return extracted_data
 
 
