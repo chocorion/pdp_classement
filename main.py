@@ -117,7 +117,7 @@ def find_best_distribution(student_project_permutation, number_of_try, verbose=F
 
     for i in range(number_of_try):
         current_assignement = generate_random_distribution(student_list, student_project_permutation)
-        current_loss = distribution_loss(best_assignement, student_project_permutation)
+        current_loss = distribution_loss(current_assignement, student_project_permutation)
 
         print("\tTry number {} loss -> {}".format(i, min_loss))
 
