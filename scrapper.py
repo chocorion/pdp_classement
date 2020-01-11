@@ -2,21 +2,21 @@
 
 import requests, json
 
-# Il faut créer un fichier cookies.py, contenant les cookies dans un dico
-# cookies = {
-#   'name': 'value',
-#   ...
-# }
-# Utilise editThisCookie, extention pour charger les cookies
+# Il faut remplacer le contenu d'exemple de cookies.txt 
+# par ce qu'on obtient en exportant les cookies depuis l'extension EditThisCookie sur chrome
 
-from cookies import cookies
+from getcookies import getcookies
+
+cookies = getcookies()
+
+FULL_CSV = False
 
 url = "https://evento.renater.fr/rest.php/question/219442/answer?format=json"
 
 r = requests.get(url, cookies=cookies)
 
 final_result = dict()
-
+getcookies
 results = json.loads(r.content)
 
 users = {}
@@ -30,6 +30,11 @@ for username in users.keys():
 
 
 for student in users_answers.keys():
+
+    if FULL_CSV:
+        final_result[student] = users_answers[student]
+        continue
+
     student_choice = list()
 
     try:
@@ -60,4 +65,7 @@ for student in users_answers.keys():
 
 with open("data.txt", "w") as f:
     for student in final_result.keys():
-        f.write("{}|{}\n".format(student, final_result[student]))
+        if not FULL_CSV:
+            f.write("{}|{}\n".format(student, final_result[student]))
+        else:
+            f.write("{},\"{}\"\n".format(student, str(final_result[student]).replace('.','').replace('\n','')))
