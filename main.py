@@ -209,7 +209,11 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
             )
 
         for project_number in projects.keys():
-            print("{}.{}\n{}\n".format(project_number, projects[project_number], ["{}({}%)".format(name, result) for (name, result) in student_list_by_project[project_number]]))
+            print("{}.{}".format(project_number, projects[project_number]))
+
+            for (name, result) in student_list_by_project[project_number]:
+                print("\t{:30s} -> {} %".format(name, result))    
+            print('')
 
     return best_assignement
 
