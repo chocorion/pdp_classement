@@ -25,12 +25,13 @@ users_answers = {}
 for result in results:
     users[result["participant"]["name"]] = str(result["answer_id"])
 
+print("Downloading...")
 for username in users.keys():
     users_answers[username] = json.loads(requests.get("https://evento.renater.fr/rest.php/answer/"+users[username], cookies=cookies).content)["comment"]
-
+    print("\t{:20s} -> {}".format(username, users_answers[username]))
+print("Done !")
 
 for student in users_answers.keys():
-
     if FULL_CSV:
         final_result[student] = users_answers[student]
         continue
@@ -59,7 +60,7 @@ for student in users_answers.keys():
         continue
 
     final_result[student] = student_choice
-
+   
 
 #print(final_result)
 
