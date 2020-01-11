@@ -32,7 +32,7 @@ def read_student_permutation_data(filename="data.txt"):
             continue
 
         (name, permutation) = line.split('|')
-        permutation = permutation[1:(len(permutation) - 2)]
+        permutation = permutation[1:(len(permutation) - 2)] # ignore [ and ] for choice list
         extracted_data[name] = list()
 
         for number in permutation.split(','):
@@ -193,30 +193,32 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
             print("{:10d} -> {:10d} ({:6s}%) {}".format(i,stats[username][i][0],str(round((stats[username][i][0]/number_of_try)*100, 2)), [round((j/stats[username][i][0]) * 100, 2) for j in stats[username][i][1]]))
 
 
-        student_list_by_project = dict()
-        for project_number in projects.keys():
-            student_list_by_project[project_number] = list()
-            
-        for student in student_list:
-            student_list_by_project[student_project_permutation[student][0]].append(
-                (
-                    student,
-                    round(
-                        (stats[student][loss_list[0]][1][0]/stats[student][loss_list[0]][0]) * 100,
-                        2
-                    )
-                )
-            )
-
-        for project_number in projects.keys():
-            print("{}.{}".format(project_number, projects[project_number]))
-
-            for (name, result) in student_list_by_project[project_number]:
-                print("\t{:30s} -> {} %".format(name, result))    
-            print('')
+        show_groups_proba(student_project_permutation, stats, loss_list)
 
     return best_assignement
 
+def show_groups_proba(student_project_permutation, stats, loss_list):
+    student_list_by_project = dict()
+    for project_number in projects.keys():
+        student_list_by_project[project_number] = list()
+        
+    for student in student_list:
+        student_list_by_project[student_project_permutation[student][0]].append(
+            (
+                student,
+                round(
+                    (stats[student][loss_list[0]][1][0]/stats[student][loss_list[0]][0]) * 100,
+                    2
+                )
+            )
+        )
+
+    for project_number in projects.keys():
+        print("{}.{}".format(project_number, projects[project_number]))
+
+        for (name, result) in student_list_by_project[project_number]:
+            print("\t{:30s} -> {} %".format(name, result))    
+        print('')
 
 def usage():
     print("\nUsage :")

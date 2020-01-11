@@ -25,10 +25,15 @@ users_answers = {}
 for result in results:
     users[result["participant"]["name"]] = str(result["answer_id"])
 
-print("Downloading...")
+number_student = len(users.keys())
+print("Downloading {} comments...".format(number_student))
+count = 0
 for username in users.keys():
     users_answers[username] = json.loads(requests.get("https://evento.renater.fr/rest.php/answer/"+users[username], cookies=cookies).content)["comment"]
-    print("\t{:20s} -> {}".format(username, users_answers[username]))
+    count += 1
+
+    print("{}/{}\t{:20s} -> {}".format(count, number_student,username, users_answers[username]))
+    
 print("Done !")
 
 for student in users_answers.keys():
@@ -62,7 +67,7 @@ for student in users_answers.keys():
     final_result[student] = student_choice
    
 
-#print(final_result)
+print("Number of correct answer : ", len(final_result.keys()))
 
 with open("data.txt", "w") as f:
     for student in final_result.keys():
