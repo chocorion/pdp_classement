@@ -257,6 +257,12 @@ if __name__ == "__main__":
             username = student_list[num]
             unsername_find = True
 
+        #Just display project
+        print('\n')
+        for num in projects.keys():
+            print("{}.{}".format(num, projects[num]))
+        print('\n')
+
         while not target_find:
             try:
                 num = int(input("Enter the target project number : "))
