@@ -120,8 +120,8 @@ def distribution_loss(student_assigned_project, student_project_permutation):
 
     for student in student_assigned_project.keys():
         choice = student_project_permutation[student].index(student_assigned_project[student])
-        # loss += 2**choice
-        loss += choice
+        loss += 2**choice
+        # loss += choice
 
     return loss
 
