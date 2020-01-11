@@ -212,7 +212,7 @@ class Project_distribution:
 if __name__ =="__main__":
     number_try = DEFAULT_NUMBER_TRY
 
-    if sys.argv == 2:
+    if len(sys.argv) == 2:
         try:
             number_try = int(sys.argv[1])
         except:
