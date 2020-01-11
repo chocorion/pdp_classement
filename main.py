@@ -149,17 +149,20 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
     min_loss = distribution_loss(best_assignement, student_project_permutation)
 
     # for each loss, number of accurence and number of choice occurence
-    stats[min_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
+    for student in student_list:
+        stats[student] = dict()
+        stats[student][min_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
 
 
     for i in range(1, number_of_try):
         current_assignement = generate_random_distribution(student_list, student_project_permutation)
         current_loss = distribution_loss(current_assignement, student_project_permutation)
 
-        if current_loss in stats.keys():
-            stats[current_loss][0] += 1
-        else:
-            stats[current_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
+        for student in student_list:
+            if current_loss in stats[student].keys():
+                stats[student][current_loss][0] += 1
+            else:
+                stats[student][current_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
 
         if verbose:
             # +1 because 1 already used for initialisation, 
@@ -169,13 +172,13 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
             min_loss = current_loss
             best_assignement = current_assignement
 
-
-        choice_position = student_project_permutation[username].index(current_assignement[username])
-        stats[current_loss][1][choice_position] += 1
+        for student in student_list:
+            choice_position = student_project_permutation[student].index(current_assignement[student])
+            stats[student][current_loss][1][choice_position] += 1
 
 
     if (verbose):
-        loss_list = [i for i in stats.keys()]
+        loss_list = [i for i in stats[username].keys()]
         loss_list.sort()
 
         print("Your firsts projects : ")
@@ -187,7 +190,26 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
         print("\n\nLoss frequency : Chance to have project")
         
         for i in loss_list:
-            print("{:10d} -> {:10d} ({:6s}%) {}".format(i,stats[i][0],str(round((stats[i][0]/number_of_try)*100, 2)), [round((j/stats[i][0]) * 100, 2) for j in stats[i][1]]))
+            print("{:10d} -> {:10d} ({:6s}%) {}".format(i,stats[username][i][0],str(round((stats[username][i][0]/number_of_try)*100, 2)), [round((j/stats[username][i][0]) * 100, 2) for j in stats[username][i][1]]))
+
+
+        student_list_by_project = dict()
+        for project_number in projects.keys():
+            student_list_by_project[project_number] = list()
+            
+        for student in student_list:
+            student_list_by_project[student_project_permutation[student][0]].append(
+                (
+                    student,
+                    round(
+                        (stats[student][loss_list[0]][1][0]/stats[student][loss_list[0]][0]) * 100,
+                        2
+                    )
+                )
+            )
+
+        for project_number in projects.keys():
+            print("{}.{}\n{}\n".format(project_number, projects[project_number], ["{}({}%)".format(name, result) for (name, result) in student_list_by_project[project_number]]))
 
     return best_assignement
 
@@ -264,5 +286,5 @@ if __name__ == "__main__":
     popularity = make_project_popularity(student_project_permutation, display=True)
     best_assignement = find_best_distribution(student_project_permutation, number_try, username, verbose=True)
 
-    print("\n\nExemple de distribution :")
-    display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
+    # print("\n\nExemple de distribution :")
+    # display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
