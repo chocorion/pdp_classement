@@ -65,13 +65,36 @@ for student in users_answers.keys():
         continue
 
     final_result[student] = student_choice
-   
+
+
 
 print("Number of correct answer : ", len(final_result.keys()))
+
+datas = dict()
+try:
+    file = open("data.txt", "r")
+except:
+    print("No database found...")
+else:
+    lines = file.readlines()
+
+    for line in lines:
+        (name, permutation) = line.split('|')
+        datas[name] = permutation
+
+    file.close()
 
 with open("data.txt", "w") as f:
     for student in final_result.keys():
         if not FULL_CSV:
+            
+            if student in datas.keys():
+                # print(datas[student][0:len(datas[student]) - 1], str(final_result[student]))
+                if datas[student][0:len(datas[student]) - 1] != str(final_result[student]):
+                    print("{} replace {} with {} !".format(student, datas[student], final_result[student]))
+            else:
+                print("New student, {} -> {}".format(student, final_result[student]))
+
             f.write("{}|{}\n".format(student, final_result[student]))
         else:
             f.write("{},\"{}\"\n".format(student, str(final_result[student]).replace('.','').replace('\n','')))
