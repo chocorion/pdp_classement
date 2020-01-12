@@ -104,7 +104,7 @@ if EXPORT_CSV:
     with open("data.csv", "w") as f:
         for student in full_result.keys():
             v = full_result[student]
-            print(full_result[student])
+            
             try:
                 if type(full_result[student]) == list:
                     v = ",".join(str(n) for n in full_result[student])
