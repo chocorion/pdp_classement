@@ -11,7 +11,7 @@ import sys
 from random import shuffle
 from projects import projects
 
-DEFAULT_NUMBER_TRY  = 50000
+DEFAULT_NUMBER_TRY  = 500000
 
 class Student:
     def __init__(self, name, permutation):
@@ -232,7 +232,7 @@ class Project_distribution:
     def display_individual_probability(pdp, distributions):
 
         print("\n----- Probabilitiés individuelles -----\n")
-        
+
         number_of_distributions = len(distributions)
 
         project_repartition = dict()

@@ -50,7 +50,7 @@ for student in users_answers.keys():
         user_choice_string = users_answers[student].split(',')
 
         if len(user_choice_string) != 25:
-            continue
+            raise Exception()
         
         for number in user_choice_string:
             if int(number) < 1 or int(number) > 25:
