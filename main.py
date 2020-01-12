@@ -148,11 +148,11 @@ class Project_distribution:
     @staticmethod
     def print_progress_bar(max_try, current_try_number):
         progression = str(round((current_try_number/max_try) * 100, 2))
-
-        print(
-            "Progression: {:4d}/{:4d} -> {:5s}%".format(current_try_number, max_try, progression),
-            end='\n' if current_try_number == max_try else '\r'
-        )
+        if current_try_number % 100 == 0:
+            print(
+                "Progression: {:4d}/{:4d} -> {:5s}%".format(current_try_number, max_try, progression),
+                end='\n' if current_try_number == max_try else '\r'
+            )
 
 
     @staticmethod
@@ -271,17 +271,27 @@ class Project_distribution:
                     else:
                         students_probas[student.name] = [(projects_key,proba)]
 
-        # Sort projects for each student, and display
-        for s in sorted(students_probas.keys()):
-            #sort
-            students_probas[s] = sorted(students_probas[s], key=lambda t: t[1], reverse=True)
+        with open("probas.csv", "w") as f:
+            # Sort projects for each student, and display
+            for s in sorted(students_probas.keys()):
+                #sort
+                students_probas[s] = sorted(students_probas[s], key=lambda t: t[1], reverse=True)
 
-            #display
-            print("\t{:30s}".format(s), end='')
+                #save
+                keyd = {}
+                i = 0
+                for st in pdp.student_list:
+                    if s == st.name:
+                        for ps in st.permutation:
+                            keyd[ps] = i
+                            i = i + 1
 
-            for p in students_probas[s]:
-                print(" {:2s} - ({:6s}%) | ".format(str(p[0]),str(p[1])), end='')
-            print('')
+                probas = [0] * 25
+                for p in students_probas[s]:
+                    probas[keyd[p[0]]] = p[1]
+
+                f.write("{},\"{}\"\n".format(s,",".join(str(p) for p in probas)))
+            
 
 
 
