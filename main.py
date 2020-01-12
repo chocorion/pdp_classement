@@ -157,6 +157,7 @@ class Project_distribution:
 
     @staticmethod
     def get_bests_distributions_on_n_try(pdp, n, m_bests_loss=10):
+
         distributions = dict()
 
         for i in range(n):
@@ -185,6 +186,9 @@ class Project_distribution:
 
     @staticmethod
     def display_group_probability(pdp, distributions):
+
+        print("\n----- Probabilitiés par groupe -----\n")
+
         number_of_distributions = len(distributions)
 
         project_repartition = dict()
@@ -222,6 +226,62 @@ class Project_distribution:
                     print(" ({:6s} %)".format(str(proba)))
             
             print('')
+        
+
+    @staticmethod
+    def display_individual_probability(pdp, distributions):
+
+        print("\n----- Probabilitiés individuelles -----\n")
+        
+        number_of_distributions = len(distributions)
+
+        project_repartition = dict()
+
+        for projects_key in pdp.projects_keys:
+            project_repartition[projects_key] = dict()
+
+        
+        for distribution in distributions:
+            for student in pdp.student_list:
+                assigned_project = distribution.distribution[student]
+
+                if student in project_repartition[assigned_project]:
+                    project_repartition[assigned_project][student] += 1
+                else:
+                    project_repartition[assigned_project][student] = 1
+
+        
+        students_probas = dict()
+        for projects_key in pdp.projects_keys:
+
+            sort_by_bests = dict()
+            for student in project_repartition[projects_key]:
+                proba = (project_repartition[projects_key][student]/number_of_distributions) * 100
+                proba = round(proba, 2)
+                
+                if proba not in sort_by_bests.keys():
+                    sort_by_bests[proba] = [student]
+                else:
+                    sort_by_bests[proba].append(student)
+                
+            for proba in sorted(sort_by_bests.keys(), reverse=True):
+                for student in sort_by_bests[proba]:
+                    if(student.name in students_probas.keys()):
+                        students_probas[student.name].append((projects_key,proba))
+                    else:
+                        students_probas[student.name] = [(projects_key,proba)]
+
+        # Sort projects for each student, and display
+        for s in sorted(students_probas.keys()):
+            #sort
+            students_probas[s] = sorted(students_probas[s], key=lambda t: t[1], reverse=True)
+
+            #display
+            print("\t{:30s}".format(s), end='')
+
+            for p in students_probas[s]:
+                print(" {:2s} - ({:6s}%) | ".format(str(p[0]),str(p[1])), end='')
+            print('')
 
 
 
@@ -232,7 +292,7 @@ if __name__ =="__main__":
         try:
             number_try = int(sys.argv[1])
         except:
-            print('./rewrite.py <number_of_try (optionnal)>')
+            print('./main.py <number_of_try (optionnal)>')
             sys.exit(0)
 
     pdp = PdP()
@@ -241,3 +301,4 @@ if __name__ =="__main__":
 
     best_distributions = Project_distribution.get_bests_distributions_on_n_try(pdp, number_try)
     Project_distribution.display_group_probability(pdp, best_distributions)
+    Project_distribution.display_individual_probability(pdp, best_distributions)
