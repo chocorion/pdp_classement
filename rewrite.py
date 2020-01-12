@@ -168,7 +168,7 @@ class Project_distribution:
             else:
                 distributions[loss] = [distribution]
             
-            Project_distribution.print_progress_bar(n, i)
+            Project_distribution.print_progress_bar(n, i + 1)
 
         best_loss = min(distributions.keys())
 
