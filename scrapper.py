@@ -9,21 +9,26 @@ from getcookies import getcookies
 
 cookies = getcookies()
 
-FULL_CSV = False
+EXPORT_CSV = True
 
 url = "https://evento.renater.fr/rest.php/question/219442/answer?format=json"
 
 r = requests.get(url, cookies=cookies)
 
 final_result = dict()
+full_result = dict()
 getcookies
 results = json.loads(r.content)
 
 users = {}
 users_answers = {}
 
-for result in results:
-    users[result["participant"]["name"]] = str(result["answer_id"])
+try:
+    for result in results:
+        users[result["participant"]["name"]] = str(result["answer_id"])
+except:
+    print("Failed to parse results, did your cookies expire ?")
+    exit()
 
 number_student = len(users.keys())
 print("Downloading {} comments...".format(number_student))
@@ -37,9 +42,6 @@ for username in users.keys():
 print("Done !")
 
 for student in users_answers.keys():
-    if FULL_CSV:
-        final_result[student] = users_answers[student]
-        continue
 
     student_choice = list()
 
@@ -62,13 +64,16 @@ for student in users_answers.keys():
             student_choice.append(int(number))
 
     except:
+        if EXPORT_CSV:
+            full_result[("err:"+str(student))] = users_answers[student]
         continue
 
-    final_result[student] = student_choice
+    full_result[student] = student_choice
 
+for s in [s for s in full_result.keys() if not s.startswith("err:")]:
+    final_result[s] = full_result[s]
 
-
-print("Number of correct answer : ", len(final_result.keys()))
+print("Number of correct answer : ", len(final_result))
 
 datas = dict()
 try:
@@ -86,15 +91,23 @@ else:
 
 with open("data.txt", "w") as f:
     for student in final_result.keys():
-        if not FULL_CSV:
-            
-            if student in datas.keys():
-                # print(datas[student][0:len(datas[student]) - 1], str(final_result[student]))
-                if datas[student][0:len(datas[student]) - 1] != str(final_result[student]):
-                    print("{} replace {} with {} !".format(student, datas[student], final_result[student]))
-            else:
-                print("New student, {} -> {}".format(student, final_result[student]))
-
-            f.write("{}|{}\n".format(student, final_result[student]))
+        if student in datas.keys():
+            # print(datas[student][0:len(datas[student]) - 1], str(final_result[student]))
+            if datas[student][0:len(datas[student]) - 1] != str(final_result[student]):
+                print("{} replace {} with {} !".format(student, datas[student], final_result[student]))
         else:
-            f.write("{},\"{}\"\n".format(student, str(final_result[student]).replace('.','').replace('\n','')))
+            print("New student, {} -> {}".format(student, final_result[student]))
+
+        f.write("{}|{}\n".format(student, final_result[student]))
+
+if EXPORT_CSV:
+    with open("data.csv", "w") as f:
+        for student in full_result.keys():
+            v = full_result[student]
+            print(full_result[student])
+            try:
+                if type(full_result[student]) == list:
+                    v = ",".join(str(n) for n in full_result[student])
+            except:
+                pass
+            f.write("{},\"{}\"\n".format(student, v))
