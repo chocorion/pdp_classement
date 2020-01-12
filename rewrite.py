@@ -156,7 +156,7 @@ class Project_distribution:
 
 
     @staticmethod
-    def get_bests_distributions_on_n_try(pdp, n):
+    def get_bests_distributions_on_n_try(pdp, n, m_bests_loss=10):
         distributions = dict()
 
         for i in range(n):
@@ -170,9 +170,17 @@ class Project_distribution:
             
             Project_distribution.print_progress_bar(n, i + 1)
 
-        best_loss = min(distributions.keys())
+        bests_loss = sorted(distributions.keys())
+        bests_distributions = list()
 
-        return distributions[best_loss]
+        for i in range(m_bests_loss):
+
+            for d in distributions[bests_loss[i]]:
+                bests_distributions.append(d)
+
+
+
+        return bests_distributions
         
 
     @staticmethod

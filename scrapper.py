@@ -9,7 +9,7 @@ from getcookies import getcookies
 
 cookies = getcookies()
 
-EXPORT_CSV = True
+EXPORT_CSV = False
 
 url = "https://evento.renater.fr/rest.php/question/219442/answer?format=json"
 
