@@ -11,286 +11,233 @@ import sys
 from random import shuffle
 from projects import projects
 
-
-NUMBER_PROJECTS     = 25
-GROUP_SIZE          = 5
 DEFAULT_NUMBER_TRY  = 50000
 
-def read_student_permutation_data(filename="data.txt"):
-    ''' Read the permutation for each student, and return the dict '''
+class Student:
+    def __init__(self, name, permutation):
+        self.name = name
+        self.permutation = permutation
 
-    file = open(filename, "r")
-    lines = file.readlines()
+    def get_choice_number(self, choice_number):
+        return self.permutation[choice_number]
 
-    extracted_data = dict()
-
-    for line in lines:
-        if (line[0] == '#'):
-            continue
-
-        if ('|' not in line):
-            continue
-
-        (name, permutation) = line.split('|')
-        permutation = permutation[1:(len(permutation) - 2)] # ignore [ and ] for choice list
-        extracted_data[name] = list()
-
-        for number in permutation.split(','):
-            extracted_data[name].append(int(number))
-
-    file.close()
-    return extracted_data
+    def get_project_position(self, project_num):
+        return self.permutation.index(project_num)
 
 
+class PdP:
+    def __init__(self):
+        self.number_of_projects = 25
+        self.group_size = 6
+        self.number_of_student = 0
 
-def make_project_popularity(student_permutation, display=False):
-    ''' For each project, compute how many student want it on which position '''
+        self.student_list = list()
 
-    result = dict()
-    number_project_list = range(1, NUMBER_PROJECTS + 1)
-
-    for i in number_project_list:
-        result[i] = [0 for i in number_project_list]
-
-
-    for student in student_permutation.keys():
-        for permutation_index in range(len(number_project_list)):
-            result[student_permutation[student][permutation_index]][permutation_index] += 1
+        self.projects = projects
+        self.projects_keys = self.projects.keys()
 
 
-    if (display):
+    
+    def add_student(self, student):
+        self.student_list.append(student)
+        self.number_of_student += 1
+
+
+    def get_student_by_index(self, index):
+        return self.student_list[index]
+    
+    def add_student_from_db(self, filename="data.txt"):
+        with open(filename, "r") as file:
+            for line in file.readlines():
+
+                # Empty line or comment
+                if line[0] == '#' or '|' not in line:
+                    continue
+
+                (name, permutation) = line.split('|')
+                permutation = permutation[1:len(permutation) - 2] # Remove [, ] and \n
+
+                self.add_student(Student(name, [int(i) for i in permutation.split(',')]))
+
+
+    def print_project_popularity(self):
+        project_popularity = dict()
+
+        for projects_key in self.projects_keys:
+            project_popularity[projects_key] = [0 for i in range(self.number_of_projects)]
+
+        for student in self.student_list:
+            for i in range(self.number_of_projects):
+                student_ieme_choice = student.get_choice_number(i)
+
+                project_popularity[student_ieme_choice][i] += 1
+
         print("\tProject popularity :\n\n")
-        for project_num in number_project_list:
-            print("{}.{:65s}\t{}".format(project_num, projects[project_num], result[project_num]))
-        print('\n\n')
 
-    return result
+        for projects_key in self.projects_keys:
+            print("{}.{:65s}\t{}".format(projects_key, self.projects[projects_key], project_popularity[projects_key]))
 
 
-def display_distribution(distribution, student_list):
-    ''' Display the distribution of student by project '''
+class Project_distribution:
+    def __init__(self, pdp):
+        self.pdp = pdp
+        self.distribution = dict()
 
-    print('\n')
-    for project_num in projects.keys():
-        project_student_list = list()
-
-        for student in student_list:
-            if distribution[student] == project_num:
-                project_student_list.append(student)
-
-        print("{}.{:65s}\t -> {}".format(project_num, projects[project_num], project_student_list))
-    print('\n')
+        for student in pdp.student_list:
+            self.distribution[student] = list()
 
 
-def generate_random_distribution(student_list, student_project_permutation, display=False):
-    ''' Generate one distribution, based on a random permutation of students '''
+    @staticmethod
+    def generate_random(pdp):
+        random_permutation = [i for i in range(pdp.number_of_student)]
+        shuffle(random_permutation)
 
-    random_permutation = [i for i in range(len(student_list))]
-    shuffle(random_permutation)
+        project_distribution = Project_distribution(pdp)
 
-    student_per_project = dict()
-    student_assigned_project = dict()
+        project_occupation = dict()
 
-    for project_num in projects.keys():
-        student_per_project[project_num] = 0
+        for projects_key in pdp.projects_keys:
+            project_occupation[projects_key] = 0
 
-    for student_index in random_permutation:
-        for choice in student_project_permutation[student_list[student_index]]:
+        
+        for student_index in random_permutation:
+            student = pdp.get_student_by_index(student_index)
 
-            if student_per_project[choice] < GROUP_SIZE:
-                student_per_project[choice] += 1
-                student_assigned_project[student_list[student_index]] = choice
-                break
-        else: # Oui j'ai le droit de faire ça :)
-            print("Error -> student without project !")
-            sys.exit(0)
+            for project_position in range(pdp.number_of_projects):
+                student_choice = student.get_choice_number(project_position)
 
-    if (display):
-        print('\tOne distribution :\n\n')
-        display_distribution(student_assigned_project, student_list)
+                if project_occupation[student_choice] < pdp.group_size:
+                    project_occupation[student_choice] += 1
 
-    return student_assigned_project
-
-
-    
-
-def distribution_loss(student_assigned_project, student_project_permutation):
-    ''' Compute distribution loss, based on what the prof say '''
-    loss = 0
-
-    for student in student_assigned_project.keys():
-        choice = student_project_permutation[student].index(student_assigned_project[student])
-        loss += 2**choice
-        # loss += choice
-
-    return loss
-
-
-
-def print_progression_bar(max_number, current_number, current_loss, min_loss):
-    ''' Display a beautiful progression bar for find_best_distribution '''
-
-    progression = str(round((current_number/max_number) * 100, 2))
-
-    print("Progression: {:4d}/{:4d} -> {:5s}% | Current loss -> {:6d} : Minimal loss -> {:6d}".format(current_number, max_number, progression, current_loss, min_loss), end='\n' if current_number == max_number else '\r')
-
-    # \n at the end
-    if current_number == max_number:
-        print('\n')
-
-
-def find_best_distribution(student_project_permutation, number_of_try, username, verbose=False):
-    ''' The core algorithme, find best solution and make stats '''
-
-    student_list = [student for student in student_project_permutation.keys()]
-    stats = dict()
-    
-    best_assignement = generate_random_distribution(student_list, student_project_permutation)
-    min_loss = distribution_loss(best_assignement, student_project_permutation)
-
-    # for each loss, number of accurence and number of choice occurence
-    for student in student_list:
-        stats[student] = dict()
-        stats[student][min_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
-
-
-    for i in range(1, number_of_try):
-        current_assignement = generate_random_distribution(student_list, student_project_permutation)
-        current_loss = distribution_loss(current_assignement, student_project_permutation)
-
-        for student in student_list:
-            if current_loss in stats[student].keys():
-                stats[student][current_loss][0] += 1
+                    project_distribution.distribution[student] = student_choice
+                    break
             else:
-                stats[student][current_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
+                print("Error, student without project in distribution...")
+                sys.exit(0)
 
-        if verbose:
-            # +1 because 1 already used for initialisation, 
-            print_progression_bar(number_of_try, i + 1, current_loss, min_loss)
-
-        if current_loss < min_loss:
-            min_loss = current_loss
-            best_assignement = current_assignement
-
-        for student in student_list:
-            choice_position = student_project_permutation[student].index(current_assignement[student])
-            stats[student][current_loss][1][choice_position] += 1
+        return project_distribution
 
 
-    if (verbose):
-        loss_list = [i for i in stats[username].keys()]
-        loss_list.sort()
+    def loss(self):
+        loss = 0
 
-        print("Your firsts projects : ")
+        for student in self.pdp.student_list:
+            assigned_project = self.distribution[student]
+            choice = student.get_project_position(assigned_project)
 
-        
-        for i in range(4):
-            print("\t{}. {}".format(i + 1, projects[student_project_permutation[username][i]]))
+            # Si linéaire
+            loss += choice
 
-        print("\n\nLoss frequency : Chance to have project")
-        
-        for i in loss_list:
-            print("{:10d} -> {:10d} ({:6s}%) {}".format(i,stats[username][i][0],str(round((stats[username][i][0]/number_of_try)*100, 2)), [round((j/stats[username][i][0]) * 100, 2) for j in stats[username][i][1]]))
+            #Sinon, quelque chose comme
+            # loss += 2**choice
+
+        return loss
 
 
-        show_groups_proba(student_project_permutation, stats, loss_list)
+    def print_distribution(self):
+        for projects_key in pdp.projects_keys:
+            student_assigned = list()
 
-    return best_assignement
+            for student in pdp.student_list:
+                if self.distribution[student] == projects_key:
+                    student_assigned.append(student)
+            
+            print("{}.{:65s}\t -> {}".format(projects_key, pdp.projects[projects_key], student_assigned))
 
-def show_groups_proba(student_project_permutation, stats, loss_list):
-    student_list_by_project = dict()
-    for project_number in projects.keys():
-        student_list_by_project[project_number] = list()
-        
-    for student in student_list:
-        student_list_by_project[student_project_permutation[student][0]].append(
-            (
-                student,
-                round(
-                    (stats[student][loss_list[0]][1][0]/stats[student][loss_list[0]][0]) * 100,
-                    2
-                )
-            )
+
+    @staticmethod
+    def print_progress_bar(max_try, current_try_number):
+        progression = str(round((current_try_number/max_try) * 100, 2))
+
+        print(
+            "Progression: {:4d}/{:4d} -> {:5s}%".format(current_try_number, max_try, progression),
+            end='\n' if current_try_number == max_try else '\r'
         )
 
-    for project_number in projects.keys():
-        print("{}.{}".format(project_number, projects[project_number]))
 
-        for (name, result) in student_list_by_project[project_number]:
-            print("\t{:30s} -> {} %".format(name, result))    
-        print('')
+    @staticmethod
+    def get_bests_distributions_on_n_try(pdp, n, m_bests_loss=10):
+        distributions = dict()
 
-def usage():
-    print("\nUsage :")
-    print("\t./main.py <number_of_try (opt)> <\"your_name\" (opt)>")
+        for i in range(n):
+            distribution = Project_distribution.generate_random(pdp)
+            loss = distribution.loss()
+
+            if loss in distributions.keys():
+                distributions[loss].append(distribution)
+            else:
+                distributions[loss] = [distribution]
+            
+            Project_distribution.print_progress_bar(n, i + 1)
+
+        bests_loss = sorted(distributions.keys())
+        bests_distributions = list()
+
+        for i in range(m_bests_loss):
+
+            for d in distributions[bests_loss[i]]:
+                bests_distributions.append(d)
 
 
 
+        return bests_distributions
+        
 
-if __name__ == "__main__":
-    username = ""
+    @staticmethod
+    def display_group_probability(pdp, distributions):
+        number_of_distributions = len(distributions)
+
+        project_repartition = dict()
+
+        for projects_key in pdp.projects_keys:
+            project_repartition[projects_key] = dict()
+
+        
+        for distribution in distributions:
+            for student in pdp.student_list:
+                assigned_project = distribution.distribution[student]
+
+                if student in project_repartition[assigned_project]:
+                    project_repartition[assigned_project][student] += 1
+                else:
+                    project_repartition[assigned_project][student] = 1
+
+        
+        for projects_key in pdp.projects_keys:
+            print("{}.{}\n".format(projects_key, pdp.projects[projects_key]))
+
+            sort_by_bests = dict()
+            for student in project_repartition[projects_key]:
+                proba = (project_repartition[projects_key][student]/number_of_distributions) * 100
+                proba = round(proba, 2)
+                
+                if proba not in sort_by_bests.keys():
+                    sort_by_bests[proba] = [student]
+                else:
+                    sort_by_bests[proba].append(student)
+                
+            for proba in sorted(sort_by_bests.keys(), reverse=True):
+                for student in sort_by_bests[proba]:
+                    print("\t{:30s}".format(student.name), end='')
+                    print(" ({:6s} %)".format(str(proba)))
+            
+            print('')
+
+
+
+if __name__ =="__main__":
+    number_try = DEFAULT_NUMBER_TRY
+
     if len(sys.argv) == 2:
         try:
             number_try = int(sys.argv[1])
         except:
-            usage()
+            print('./rewrite.py <number_of_try (optionnal)>')
             sys.exit(0)
 
-    elif len(sys.argv) == 3:
-        try:
-            number_try = int(sys.argv[1])
-            username = sys.argv[2]
-        except:
-            usage()
-            sys.exit(0)
-    elif len(sys.argv) == 4:
-        print("Put your name between \"\" please, i'm lazy...")
-        usage()
+    pdp = PdP()
+    pdp.add_student_from_db()
+    pdp.print_project_popularity()
 
-        sys.exit(0)
-    else:
-        number_try = DEFAULT_NUMBER_TRY
-
-
-    student_project_permutation = read_student_permutation_data()
-    student_list = [student for student in student_project_permutation.keys()]
-
-    if username != "" and username not in student_list:
-        print("Error, {} not in student list...".format(username))
-        print("Student list -> ")
-        for student in student_list:
-            print("\t", student)
-
-        print("Please, use juste the name displayed without any extra space, i don't like string manipulation...")
-
-        sys.exit(0)
-
-    elif username == "":
-        unsername_find = False
-        print ("What is your name ?")
-        for i in range(len(student_list)):
-            print("\t{} -> {}".format(i, student_list[i]))
-
-        while not unsername_find:
-            try:
-                num = int(input("Enter student num : "))
-            except:
-                print("You must enter a number !")
-            
-            if num >= len(student_list) or num < 0:
-                print("Number not in range, are you idiot ?")
-            
-            if input("Are you {} (y/n) ? ".format(student_list[num])) == 'y':
-                username = student_list[num]
-                unsername_find = True
-
-
-
-    print("\n\nHello {} !".format(username))
-    print("Current number of students in database -> {}\n\n".format(len(student_list)))
-
-    popularity = make_project_popularity(student_project_permutation, display=True)
-    best_assignement = find_best_distribution(student_project_permutation, number_try, username, verbose=True)
-
-    # print("\n\nExemple de distribution :")
-    # display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
+    best_distributions = Project_distribution.get_bests_distributions_on_n_try(pdp, number_try)
+    Project_distribution.display_group_probability(pdp, best_distributions)
