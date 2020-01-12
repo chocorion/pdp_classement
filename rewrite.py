@@ -28,7 +28,7 @@ class Student:
 class PdP:
     def __init__(self):
         self.number_of_projects = 25
-        self.group_size = 5
+        self.group_size = 6
         self.number_of_student = 0
 
         self.student_list = list()
@@ -206,12 +206,20 @@ class Project_distribution:
         for projects_key in pdp.projects_keys:
             print("{}.{}\n".format(projects_key, pdp.projects[projects_key]))
 
+            sort_by_bests = dict()
             for student in project_repartition[projects_key]:
                 proba = (project_repartition[projects_key][student]/number_of_distributions) * 100
                 proba = round(proba, 2)
-
-                print("\t{:20s}".format(student.name), end='')
-                print(" ({:6s} %)".format(str(proba)))
+                
+                if proba not in sort_by_bests.keys():
+                    sort_by_bests[proba] = [student]
+                else:
+                    sort_by_bests[proba].append(student)
+                
+            for proba in sorted(sort_by_bests.keys(), reverse=True):
+                for student in sort_by_bests[proba]:
+                    print("\t{:30s}".format(student.name), end='')
+                    print(" ({:6s} %)".format(str(proba)))
             
             print('')
 
