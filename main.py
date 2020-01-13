@@ -28,7 +28,7 @@ class Student:
 class PdP:
     def __init__(self):
         self.number_of_projects = 25
-        self.group_size = 6
+        self.group_size = 5
         self.number_of_student = 0
 
         self.student_list = list()
@@ -126,10 +126,10 @@ class Project_distribution:
             choice = student.get_project_position(assigned_project)
 
             # Si linéaire
-            loss += choice
+            # loss += choice
 
             #Sinon, quelque chose comme
-            # loss += 2**choice
+            loss += 2**choice
 
         return loss
 
@@ -157,26 +157,64 @@ class Project_distribution:
 
     @staticmethod
     def get_bests_distributions_on_n_try(pdp, n, m_bests_loss=10):
+        '''n must be >= 1'''
 
         distributions = dict()
+        
+        bests_loss = list()
+        len_bests_loss = 0
 
-        for i in range(n):
+        # Init the list
+        Project_distribution.print_progress_bar(n, 1)
+
+        distribution = Project_distribution.generate_random(pdp)
+        loss = distribution.loss()
+        distributions[loss] = [distribution]
+
+        bests_loss.append(loss)
+        len_bests_loss += 1
+
+        # -1 because already one done by bests_loss initialisation
+        for i in range(n - 1):
             distribution = Project_distribution.generate_random(pdp)
             loss = distribution.loss()
 
-            if loss in distributions.keys():
-                distributions[loss].append(distribution)
-            else:
-                distributions[loss] = [distribution]
+            # Save only minimal lost
+            if len_bests_loss < m_bests_loss:
+                if loss in bests_loss:
+                    distributions[loss].append(distribution)
+                else:
+                    bests_loss.append(loss)
+                    len_bests_loss += 1
+                    bests_loss.sort()
+
+                    distributions[loss] = [distribution]
+
+            elif loss < bests_loss[len_bests_loss - 1]:
+                if loss in bests_loss:
+                    distributions[loss].append(distribution)
+                else:
+                    insert_index = 0
+
+                    for i in range(m_bests_loss):
+                        if bests_loss[i] > loss:
+                            insert_index = i
+                            break
+                    
+                    bests_loss.insert(insert_index, loss)
+                    distributions[loss] = [distribution]
+
+                    del distributions[bests_loss[len_bests_loss]]
+                    del bests_loss[len_bests_loss]
+
+
             
             Project_distribution.print_progress_bar(n, i + 1)
 
-        bests_loss = sorted(distributions.keys())
+        print(bests_loss)
         bests_distributions = list()
-
-        for i in range(m_bests_loss):
-
-            for d in distributions[bests_loss[i]]:
+        for i in bests_loss:
+            for d in distributions[i]:
                 bests_distributions.append(d)
 
 
