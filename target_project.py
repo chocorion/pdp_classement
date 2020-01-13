@@ -8,14 +8,14 @@
 
 
 import sys
+import signal
 from operator import itemgetter
 from random import shuffle
 from projects import projects
 
-
 NUMBER_PROJECTS     = 25
 GROUP_SIZE          = 5
-DEFAULT_NUMBER_TRY  = 50000
+DEFAULT_NUMBER_TRY  = 0
 
 def read_student_permutation_data(filename="data.txt"):
     ''' Read the permutation for each student, and return the dict '''
@@ -131,10 +131,12 @@ def distribution_loss(student_assigned_project, student_project_permutation):
 def print_progression_bar(max_number, current_number, current_loss, min_loss):
     ''' Display a beautiful progression bar for find_best_distribution '''
 
-    progression = str(round((current_number/max_number) * 100, 2))
-
-    print("Progression: {:4d}/{:4d} -> {:5s}% | Current loss -> {:6d} : Minimal loss -> {:6d}".format(current_number, max_number, progression, current_loss, min_loss), end='\n' if current_number == max_number else '\r')
-
+    if max_number > 0:
+        progression = str(round((current_number/max_number) * 100, 2))
+        print("Progression: {:4d}/{:4d} -> {:5s}% | Current loss -> {:6d} : Minimal loss -> {:6d}".format(current_number, max_number, progression, current_loss, min_loss), end='\n' if current_number == max_number else '\r')
+    else:
+        print("Progression: {:4d} | Current loss -> {:6d} : Minimal loss -> {:6d}".format(current_number, current_loss, min_loss), end='\n' if current_number == max_number else '\r')
+    
     # \n at the end
     if current_number == max_number:
         print('\n')
@@ -152,19 +154,19 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
     # for each loss, number of accurence and number of choice occurence
     stats[min_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
 
-
-    for i in range(1, number_of_try):
+    i = 1
+    while i != number_of_try:
         current_assignement = generate_random_distribution(student_list, student_project_permutation)
         current_loss = distribution_loss(current_assignement, student_project_permutation)
 
         if current_loss in stats.keys():
             stats[current_loss][0] += 1
         else:
-            stats[current_loss] = [1, [0 for i in range(NUMBER_PROJECTS)]]
+            stats[current_loss] = [1, [0 for j in range(NUMBER_PROJECTS)]]
 
         if verbose:
             # +1 because 1 already used for initialisation, 
-            print_progression_bar(number_of_try, i + 1, current_loss, min_loss)
+            print_progression_bar(number_of_try, i, current_loss, min_loss)
 
         if current_loss < min_loss:
             min_loss = current_loss
@@ -173,6 +175,7 @@ def find_best_distribution(student_project_permutation, number_of_try, username,
 
         choice_position = student_project_permutation[username].index(current_assignement[username])
         stats[current_loss][1][choice_position] += 1
+        i = i + 1
 
 
     if (verbose):
@@ -197,7 +200,12 @@ def usage():
     print("\nUsage :")
     print("\t./main.py <number_of_try (opt)> <\"your_name\" (opt)>")
 
-
+def signal_handler(sig, frame):
+    print('\n')
+    print('It ended!')
+    print("\n\nExemple de distribution :")
+    display_distribution(best_assignement, [student for student in student_project_permutation.keys()])
+    sys.exit(0)
 
 
 if __name__ == "__main__":
@@ -234,7 +242,7 @@ if __name__ == "__main__":
         for student in student_list:
             print("\t", student)
 
-        print("Please, use juste the name displayed without any extra space, i don't like string manipulation...")
+        print("Please, use just the name displayed without any extra space, i don't like string manipulation...")
 
         sys.exit(0)
 
@@ -304,6 +312,9 @@ if __name__ == "__main__":
     
     print("Choix : ")
     print(student_project_permutation[username])
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.pause()
 
     best_assignement = find_best_distribution(student_project_permutation, number_try, username, verbose=True)
 

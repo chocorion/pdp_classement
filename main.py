@@ -8,10 +8,11 @@
 
 
 import sys
+import signal
 from random import shuffle
 from projects import projects
 
-DEFAULT_NUMBER_TRY  = 500000
+DEFAULT_NUMBER_TRY  = 0
 
 class Student:
     def __init__(self, name, permutation):
@@ -146,26 +147,29 @@ class Project_distribution:
 
 
     @staticmethod
-    def print_progress_bar(max_try, current_try_number):
-        progression = str(round((current_try_number/max_try) * 100, 2))
-        if current_try_number % 100 == 0:
-            print(
-                "Progression: {:4d}/{:4d} -> {:5s}%".format(current_try_number, max_try, progression),
-                end='\n' if current_try_number == max_try else '\r'
-            )
+    def print_progress_bar(max_try, current_try_number, min_losses, loss):
+        
+        if current_try_number % 91 == 0:
+            if max_try > 0:
+                progression = str(round((current_try_number/max_try) * 100, 2))
+                print(
+                    "Progression: {:4d}/{:4d} -> {:5s}%".format(current_try_number, max_try, progression),
+                    end='\n' if current_try_number == max_try else '\r'
+                )
+            else:
+                print("Progression: {:4d}, Min loss: {}-{}, Current: {}".format(current_try_number,min_losses[0],min_losses[-1],loss), end='\r')
+    
 
 
     @staticmethod
     def get_bests_distributions_on_n_try(pdp, n, m_bests_loss=10):
         '''n must be >= 1'''
 
-        distributions = dict()
-        
-        bests_loss = list()
+        global best_distributions, bests_loss, distributions
         len_bests_loss = 0
 
         # Init the list
-        Project_distribution.print_progress_bar(n, 1)
+        Project_distribution.print_progress_bar(n, 1, ["None","None"], "None")
 
         distribution = Project_distribution.generate_random(pdp)
         loss = distribution.loss()
@@ -175,12 +179,14 @@ class Project_distribution:
         len_bests_loss += 1
 
         # -1 because already one done by bests_loss initialisation
-        for i in range(n - 1):
+        i = 1
+        while i != n:
             distribution = Project_distribution.generate_random(pdp)
             loss = distribution.loss()
-
+            
             # Save only minimal lost
             if len_bests_loss < m_bests_loss:
+
                 if loss in bests_loss:
                     distributions[loss].append(distribution)
                 else:
@@ -196,9 +202,9 @@ class Project_distribution:
                 else:
                     insert_index = 0
 
-                    for i in range(m_bests_loss):
-                        if bests_loss[i] > loss:
-                            insert_index = i
+                    for j in range(m_bests_loss):
+                        if bests_loss[j] > loss:
+                            insert_index = j
                             break
                     
                     bests_loss.insert(insert_index, loss)
@@ -206,20 +212,17 @@ class Project_distribution:
 
                     del distributions[bests_loss[len_bests_loss]]
                     del bests_loss[len_bests_loss]
+            i = i + 1
 
 
             
-            Project_distribution.print_progress_bar(n, i + 1)
-
+            Project_distribution.print_progress_bar(n, i + 1, bests_loss, loss)
+    
         print(bests_loss)
-        bests_distributions = list()
+        
         for i in bests_loss:
             for d in distributions[i]:
-                bests_distributions.append(d)
-
-
-
-        return bests_distributions
+                best_distributions.append(d)
         
 
     @staticmethod
@@ -268,8 +271,6 @@ class Project_distribution:
 
     @staticmethod
     def display_individual_probability(pdp, distributions):
-
-        print("\n----- Probabilitiés individuelles -----\n")
 
         number_of_distributions = len(distributions)
 
@@ -329,11 +330,29 @@ class Project_distribution:
                     probas[keyd[p[0]]] = p[1]
 
                 f.write("{},\"{}\"\n".format(s,",".join(str(p) for p in probas)))
+
+# globaal
+pdp = PdP()
+best_distributions = list()
+bests_loss = list()
+distributions = dict()
             
+def signal_handler(sig, frame):
+    global pdp, best_distributions, bests_loss, distributionq
+    print('\n')
+    
+    print(bests_loss)
+    
+    for i in bests_loss:
+        for d in distributions[i]:
+            best_distributions.append(d)
 
-
+    Project_distribution.display_group_probability(pdp, best_distributions)
+    Project_distribution.display_individual_probability(pdp, best_distributions)
+    sys.exit(0)
 
 if __name__ =="__main__":
+
     number_try = DEFAULT_NUMBER_TRY
 
     if len(sys.argv) == 2:
@@ -343,10 +362,11 @@ if __name__ =="__main__":
             print('./main.py <number_of_try (optionnal)>')
             sys.exit(0)
 
-    pdp = PdP()
     pdp.add_student_from_db()
     pdp.print_project_popularity()
 
-    best_distributions = Project_distribution.get_bests_distributions_on_n_try(pdp, number_try)
+    signal.signal(signal.SIGINT, signal_handler)
+
+    Project_distribution.get_bests_distributions_on_n_try(pdp, number_try)
     Project_distribution.display_group_probability(pdp, best_distributions)
     Project_distribution.display_individual_probability(pdp, best_distributions)
